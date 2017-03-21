@@ -1,0 +1,70 @@
+---
+title: "Baby steps"
+author: "Steve Simon"
+date: "March 21, 2017"
+output: html_document
+---
+---
+title: "Baby steps"
+author: "Steve Simon"
+date: "February 28, 2017"
+output: html_document
+---
+
+Imagine that your baby is learning to walk for the first time. Your baby starts off by just standing up and holding onto the couch. Then your baby decides either to keep holding onto the couch with probability 3/4 or taking a step forward with probability 1/4. Once away from the couch one or more steps, your baby either takes a step back towards the couch with probability 1/2, stays in place with probability 1/4, and takes one more step away from the couch with probability 1/4.
+
+You can also show that this is an example of the Metropolis algorithm. Here's an explanation.
+
+The Metropolis algorithm works well when you only partially know the form of the density function. You know that the density function can be written as $kf(x)$ where k is an unknown constant. This happens a lot in Bayesian models where the normalizing constant requires a messy multidimensional integral. But let's pick an example where the normalizing constant is known.
+
+$f(x) = ({1 \over 2})^{x+1}$ for x=0,1,2,...
+
+This is the geometric distribution with p=1/2.
+
+Now define a simple jumping variable, J, where
+
+$P[J=-1]=P[J=+1]=1/2$
+
+The Metropolis algorithm will jump from spot to spot, but only if certain conditions are met. Let $X^*=X_n+J$. You will always jump from $X_n$ to $X^*$ if $f(X^*)>f(X_n)$. In other words, always jump if you a jumping to a higher probability spot. But if $f(X^*)<=f(X_n)$ then jump only part of the time. Look at the ratio of the two heights $r={f(X^*) \over f(X_n)}$. Then jump to $X^*$ with probability r and stay at $X_n$ with probability 1-r.
+
+So with each step of the Metropolis algorithm, you either jump left, jump right, or stay in the same place. And most of the time, but not always, you are jumping towards higher spots.
+
+So how does this work with the geometric distribution with p=1/2? A left jump is a step back towards the couch and a right jump is one more step away from the couch. Notice first that the highest probability (1/2) is at 0. So your baby will spend more time clinging to the couch than anywhere else. 
+
+Also notice that the probabilities decline as X increases (1/4 for X=1, 1/8 for X=2, etc.). So when J=-1, your baby always jump to the left, unless you are already at the couch. When J=1, your baby jumps to the right half of the time and stay in the same spot half of the time. So at the couch, a left jump is the same as staying at the couch. So the total probability of staying at the couch is ${1 \over 2} + {1 \over 4}={3 \over 4}$ and the probability of one step out is 1/4. Once your baby is away from the couch, the probability of a left jump (towards the couch) is 1/2, the probability of staying in place is ${1 \over 2} \cdot {1 \over 2}={1 \over 4}$ and the probability of a right jump is also ${1 \over 2} \cdot {1 \over 2}={1 \over 4}$.
+
+You can simulate this process using a loop in R (there may be a way to avoid the loop, but I haven't figured out how).
+
+```{r baby_steps}
+z <- 0
+for (i in 2:100000) {
+  u <- runif(1)
+  j <- (u>0.75) - ifelse(z[i-1]==0, 0, (u<0.5))
+  z[i] <- z[i-1] + j
+}
+plot(z, type="l")
+barplot(prop.table(table(z)))
+```
+
+You can also model this process using a transition matrix. It gets a bit tricky because the transition matrix has infinite rows and columns. But if you truncate the matrix at a large value, you can still get a pretty good approximation.
+
+```{r transition_matrix}
+p <- matrix(0, nrow=20, ncol=20)
+p[1,1] <- 3/4
+p[1,2] <- 1/4
+for (j in 2:19) {
+  p[j,j-1] <- 1/2
+  p[j,j]   <- 1/4
+  p[j,j+1] <- 1/4
+}
+p[20, 19] <- 1/2
+p[20, 20] <- 1/2
+
+px <- p %*% p
+
+for (j in 2:1000) {
+  px <- p %*% px
+}
+print(round(px[1, ], 4))
+```
+
