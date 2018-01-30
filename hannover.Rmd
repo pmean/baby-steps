@@ -1,0 +1,41 @@
+---
+title: "Hannover track team"
+author: "Steve Simon"
+date: "September 2, 2017"
+output: html_document
+---
+
+The University of Hannover track team has a large number of members. Each member runs at a different speed and each wears a number which equals his or her running speed (#1 runs 1 kilometer per hour, #2 runs 2 kilomemters per hour, etc.). The team used to be infinite in size, but the Physics Department demanded that only the 1,079,000,000 members who ran slower than the speed of light could stay on the team.
+
+The coach sets up a relay race. All the even numbered runners sit out. Team 1 has runners 1, 5, 9, ... and Team 3 has runners 3, 7, 11, ...
+
+Each runner does a four kilometer lap and hands the baton to the next runner. At the end of the race, which team wins? How big is the margin of victory?
+
+```{r race-1}
+n <- 1079000000
+time1 <- sum(4/seq(1, n, by=4))
+time3 <- sum(4/seq(3, n, by=4))
+time1
+time3
+time1-time3
+```
+
+There's a mathematical solution as well.
+
+The time to run 4 kilometers for team 1 are
+
+$4+\frac{4}{5}+\frac{4}{9}+...$
+
+and the times for team 3 are
+
+$\frac{4}{3}+\frac{4}{7}+\frac{4}{11}+...$
+
+The difference looks suspiciously close to the Leibniz formula
+
+$\frac{\pi}{4}=1-\frac1{3}+\frac1{5}-\frac1{7}+\frac1{9}-\frac1{11}+...$
+
+four times larger, to be precise, so the infinite series ends up converging to $\pi$.
+
+An infinite number of runners complicates things because the times needed for an infinite number of members for teams 1 and 3 are both infinity. You can't subtract infinity from infinity easily. That's why I truncated things at an arbitrary large value.
+
+There's a subtle bit of trivia in the problem because Hannover University is officially known as Gottfried Wilhelm Leibniz Universit?t Hannover.
